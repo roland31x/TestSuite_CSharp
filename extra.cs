@@ -1,73 +1,99 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Text.RegularExpressions;
 
-public static class Extra {
-
-    public static string RandomString(int length = 10) {
-        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        var random = new Random();
-        var sb = new StringBuilder();
-        for(int i = 0; i < length; i++) {
-            sb.Append(chars[random.Next(chars.Length)]);
-        }
-        return sb.ToString();
+public static class Extra
+{
+    public static bool IsPrime(int num)
+    {
+        if (num < 2) return false;
+        for (int i = 2; i <= Math.Sqrt(num); i++)
+            if (num % i == 0) return false;
+        return true;
     }
 
-    public static long Factorial(int n) {
-        if(n == 0) return 1;
-        return n * Factorial(n - 1);
-    }
-
-    public static bool IsPalindrome(string s) {
-        var str = new string(s.Where(c => !char.IsWhiteSpace(c)).ToArray()).ToLower();
-        return str.SequenceEqual(str.Reverse());
-    }
-
-    public static List<T> UniqueElements<T>(List<T> list) {
-        return list.Distinct().ToList();
-    }
-
-    public static List<T> FlattenList<T>(List<List<T>> nestedList) {
-        return nestedList.SelectMany(x => x).ToList();
-    }
-
-    public static long Fibonacci(int n) {
-        long a = 0, b = 1;
-        for(int i = 0; i < n; i++) {
-            long temp = a;
-            a = b;
-            b = temp + b;
+    public static int Gcd(int a, int b)
+    {
+        while (b != 0)
+        {
+            int temp = b;
+            b = a % b;
+            a = temp;
         }
         return a;
     }
 
-    public static int CountVowels(string s) {
-        return s.Count(c => "aeiouAEIOU".Contains(c));
+    public static int Lcm(int a, int b)
+    {
+        return a * (b / Gcd(a, b));
     }
 
-    public static Dictionary<TKey, TValue> MergeDictionaries<TKey, TValue>(params Dictionary<TKey, TValue>[] dicts) {
-        var result = new Dictionary<TKey, TValue>();
-        foreach(var dict in dicts) {
-            foreach(var kvp in dict) {
-                result[kvp.Key] = kvp.Value;
+    public static Dictionary<string, object> FlattenDict(Dictionary<string, object> dict, string prefix = "")
+    {
+        var result = new Dictionary<string, object>();
+        foreach(var kvp in dict)
+        {
+            string key = prefix == "" ? kvp.Key : prefix + "." + kvp.Key;
+            if (kvp.Value is Dictionary<string, object> nested)
+            {
+                foreach(var inner in FlattenDict(nested, key))
+                    result.Add(inner.Key, inner.Value);
+            }
+            else
+            {
+                result[key] = kvp.Value;
             }
         }
         return result;
     }
 
-    public static string ReverseWords(string sentence) {
-        var words = sentence.Split(' ');
-        var reversedWords = words.Select(w => new string(w.Reverse().ToArray()));
-        return string.Join(" ", reversedWords);
+    public static T MostCommon<T>(List<T> list)
+    {
+        return list.GroupBy(x => x).OrderByDescending(g => g.Count()).First().Key;
     }
 
-    public static List<List<T>> ChunkList<T>(List<T> list, int chunkSize) {
-        var chunks = new List<List<T>>();
-        for(int i = 0; i < list.Count; i += chunkSize) {
-            chunks.Add(list.GetRange(i, Math.Min(chunkSize, list.Count - i)));
+    public static List<List<T>> Transpose<T>(List<List<T>> matrix)
+    {
+        var result = new List<List<T>>();
+        int rows = matrix.Count;
+        if (rows == 0) return result;
+        int cols = matrix[0].Count;
+        for(int i=0; i < cols; i++)
+        {
+            var col = new List<T>();
+            for(int j=0; j < rows; j++)
+                col.Add(matrix[j][i]);
+            result.Add(col);
         }
-        return chunks;
+        return result;
+    }
+
+    public static string CamelToSnake(string str)
+    {
+        return Regex.Replace(str, "([A-Z])", "_$1").ToLower();
+    }
+
+    public static string SwapCase(string s)
+    {
+        return new string(s.Select(c => char.IsUpper(c) ? char.ToLower(c) : char.ToUpper(c)).ToArray());
+    }
+
+    public static int NestedSum(IEnumerable<object> list)
+    {
+        int sum = 0;
+        foreach(var item in list)
+        {
+            if (item is IEnumerable<object> innerList)
+                sum += NestedSum(innerList);
+            else if(item is int n)
+                sum += n;
+        }
+        return sum;
+    }
+
+    public static int DigitSum(int num)
+    {
+        return Math.Abs(num).ToString().Sum(c => c - '0');
     }
 }
